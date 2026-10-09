@@ -1,13 +1,19 @@
-{
-  "name": "proxy-browser",
-  "version": "1.0.0",
-  "description": "Web Proxy",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6"
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Proxy Browser</title>
+    <style>
+        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        .toolbar { background: #2d2d2d; padding: 10px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #444; }
+        input { flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background: #1a1a1a; color: white; outline: none; }
+        input:focus { border-color: #ff6600; }
+        button { padding: 8px 15px; background: #ff6600; border: none; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
+        #browser-viewport { width: 100%; height: calc(100vh - 60px); border: none; background: white; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div style="font-weight: bold; margin-right: 10px; color: #ff6600;">🦆</div>
+        <input type="text" id="url-input" placeholder="Search DuckDuckGo or
