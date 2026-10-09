@@ -1,27 +1,92 @@
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Proxy Browser</title>
+    <style>
+        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        
+        /* Browser Toolbar */
+        .toolbar { 
+            background: #2d2d2d; 
+            padding: 10px; 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            border-bottom: 1px solid #444;
+        }
+        
+        input { 
+            flex: 1; 
+            padding: 8px 15px; 
+            border-radius: 20px; 
+            border: 1px solid #555; 
+            background: #1a1a1a; 
+            color: white; 
+            outline: none; 
+        }
+        input:focus { border-color: #ff6600; }
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+        button { 
+            padding: 8px 15px; 
+            background: #ff6600; 
+            border: none; 
+            border-radius: 20px; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        button:hover { background: #e65c00; }
 
-// Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+        /* The Browser Window */
+        #browser-viewport { 
+            width: 100%; 
+            height: calc(100vh - 60px); 
+            border: none; 
+            background: white; 
+        }
+    </style>
+</head>
+<body>
 
-// The Proxy Logic
-// Any request coming to /proxy/ will be forwarded to the target site
-app.use('/proxy', createProxyMiddleware({
-    target: 'https://www.google.com', // Default target
-    changeOrigin: true,
-    pathRewrite: {
-        '^/proxy': '', // remove /proxy from the url before sending to target
-    },
-    onProxyReq: (proxyReq, req, res) => {
-        // This hides the fact that it's a proxy from some basic filters
-        proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
-    }
-}));
+    <div class="toolbar">
+        <div style="font-weight: bold; margin-right: 10px; color: #ff6600;">🦆</div>
+        <input type="text" id="url-input" placeholder="Search DuckDuckGo or enter URL..." autocomplete="off">
+        <button onclick="navigate()">Go</button>
+    </div>
 
-app.listen(PORT, () => {
-    console.log(`Proxy server running on http://localhost:${PORT}`);
-});
+    <iframe id="browser-viewport" src="about:blank"></iframe>
+
+    <script>
+        const input = document.getElementById('url-input');
+        const iframe = document.getElementById('browser-viewport');
+
+        function navigate() {
+            let query = input.value.trim();
+            if (!query) return;
+
+            let targetUrl;
+            // If it looks like a domain (has a dot and no spaces), use it. Otherwise, search.
+            if (query.includes('.') && !query.includes(' ')) {
+                targetUrl = query.startsWith('http') ? query : 'https://' + query;
+            } else {
+                targetUrl = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
+            }
+
+            // Route the request through our Node.js proxy
+            iframe.src = `/proxy/${encodeURIComponent(targetUrl)}`;
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') navigate();
+        });
+
+        // Load DuckDuckGo by default on startup
+        window.onload = () => {
+            input.value = "duckduckgo.com";
+            navigate();
+        };
+    </script>
+</body>
+</html>
