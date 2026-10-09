@@ -5,15 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duck Proxy Browser</title>
     <style>
-        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
-        .toolbar { background: #2d2d2d; padding: 10px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #444; }
-        input { flex: 1; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background: #1a1a1a; color: white; outline: none; }
-        input:focus { border-color: #ff6600; }
-        button { padding: 8px 15px; background: #ff6600; border: none; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
-        #browser-viewport { width: 100%; height: calc(100vh - 60px); border: none; background: white; }
+        body { 
+            background: #121212; 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .toolbar { 
+            background: #2d2d2d; 
+            padding: 10px 15px; 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            border-bottom: 1px solid #444; 
+            z-index: 10;
+        }
+        .logo { 
+            font-size: 20px; 
+            color: #ff6600; 
+            cursor: pointer;
+        }
+        input { 
+            flex: 1; 
+            padding: 8px 15px; 
+            border-radius: 20px; 
+            border: 1px solid #555; 
+            background: #1a1a1a; 
+            color: white; 
+            outline: none; 
+            font-size: 14px;
+        }
+        input:focus { 
+            border-color: #ff6600; 
+            box-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+        }
+        button { 
+            padding: 8px 20px; 
+            background: #ff6600; 
+            border: none; 
+            border-radius: 20px; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: background 0.2s;
+        }
+        button:hover { 
+            background: #e65c00; 
+        }
+        #browser-viewport { 
+            width: 100%; 
+            flex-grow: 1; 
+            border: none; 
+            background: white; 
+        }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <div style="font-weight: bold; margin-right: 10px; color: #ff6600;">🦆</div>
-        <input type="text" id="url-input" placeholder="Search DuckDuckGo or
+        <div class="logo" onclick="location.reload()">🦆</div>
+        <input type="text" id="url-input" placeholder="Search DuckDuckGo or enter URL (e.g. google.com)">
+        <button onclick="navigate()">Go</button>
+    </div>
+    <iframe id="browser-viewport" src="about:blank"></iframe>
+
+    <script>
+        const input = document.getElementById('url-input');
+        const iframe = document.getElementById('browser-viewport');
+
+        function navigate() {
+            let query = input.value.trim();
+            if (!query) return;
+
+            let targetUrl;
+            // Logic: If it's a domain (has a dot and no spaces), go there. Otherwise, search.
+            if (query.includes('.') && !query.includes(' ')) {
+                targetUrl = query.startsWith('http') ? query : 'https://' + query;
+            } else {
+                targetUrl = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
+            }
+
+            // Route through the Node.js server proxy
+            iframe.src = `/proxy/${encodeURIComponent(targetUrl)}`;
+        }
+
+        // Allow "Enter" key to trigger navigation
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') navigate();
+        });
+
+        // Default load
+        window.onload = () => {
+            input.value
