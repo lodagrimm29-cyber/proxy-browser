@@ -1,168 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mini Browser</title>
-<style>
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #111827;
-  color: white;
-}
-header {
-  padding: 14px;
-  background: #1f2937;
-  border-bottom: 1px solid #374151;
-}
-h2 { margin: 0 0 12px; font-size: 19px; }
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-button, input {
-  border: 1px solid #4b5563;
-  border-radius: 8px;
-  padding: 11px;
-  font-size: 14px;
-}
-button {
-  color: white;
-  background: #374151;
-  cursor: pointer;
-}
-button:hover { background: #4b5563; }
-#address {
-  flex: 1;
-  min-width: 180px;
-  color: white;
-  background: #111827;
-}
-#status {
-  color: #9ca3af;
-  font-size: 12px;
-  margin-top: 10px;
-}
-main { padding: 12px; }
-iframe {
-  display: block;
-  width: 100%;
-  height: calc(100vh - 145px);
-  min-height: 350px;
-  border: 0;
-  border-radius: 8px;
-  background: white;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Gateway</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 1rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: white; width: 200px; }
+        button { padding: 10px 20px; background: #38bdf8; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
 </head>
 <body>
-<header>
-  <h2>🌐 Mini Browser</h2>
-  <div class="toolbar">
-    <button id="back" title="Back">←</button>
-    <button id="forward" title="Forward">→</button>
-    <button id="reload" title="Reload">⟳</button>
-    <button id="home" title="Home">⌂</button>
-    <input id="address" placeholder="Enter a URL or search..." />
-    <button id="go">Go</button>
-  </div>
-  <div id="status">Ready</div>
-</header>
-<main>
-  <iframe id="view" title="Webpage viewer"
-    referrerpolicy="no-referrer"></iframe>
-</main>
+    <div class="card">
+        <h2>🌐 Proxy Gateway</h2>
+        <input type="text" id="url" placeholder="google.com">
+        <button onclick="go()">Launch</button>
+    </div>
 
-<script>
-const address = document.getElementById("address");
-const view = document.getElementById("view");
-const status = document.getElementById("status");
-
-const homeURL = "https://example.com/";
-let historyList = [];
-let historyIndex = -1;
-
-function normalize(input) {
-  input = input.trim();
-  if (!input) return homeURL;
-
-  // Treat ordinary words as Google searches.
-  if (/\s/.test(input) || !input.includes(".")) {
-    return "https://www.google.com/search?q=" +
-      encodeURIComponent(input);
-  }
-
-  if (!/^https?:\/\//i.test(input)) {
-    input = "https://" + input;
-  }
-
-  try {
-    const url = new URL(input);
-    if (!["http:", "https:"].includes(url.protocol)) {
-      throw new Error("Only HTTP and HTTPS URLs are supported.");
-    }
-    return url.href;
-  } catch {
-    alert("Please enter a valid website address.");
-    return null;
-  }
-}
-
-function navigate(input, save = true) {
-  const url = normalize(input);
-  if (!url) return;
-
-  address.value = url;
-  status.textContent = "Loading: " + url;
-  view.src = url;
-
-  if (save) {
-    historyList = historyList.slice(0, historyIndex + 1);
-    historyList.push(url);
-    historyIndex = historyList.length - 1;
-  }
-}
-
-document.getElementById("go").onclick =
-  () => navigate(address.value);
-
-address.addEventListener("keydown", event => {
-  if (event.key === "Enter") navigate(address.value);
-});
-
-document.getElementById("home").onclick =
-  () => navigate(homeURL);
-
-document.getElementById("reload").onclick = () => {
-  if (historyIndex >= 0) {
-    status.textContent = "Reloading...";
-    view.src = historyList[historyIndex];
-  }
-};
-
-document.getElementById("back").onclick = () => {
-  if (historyIndex > 0) {
-    historyIndex--;
-    navigate(historyList[historyIndex], false);
-  }
-};
-
-document.getElementById("forward").onclick = () => {
-  if (historyIndex < historyList.length - 1) {
-    historyIndex++;
-    navigate(historyList[historyIndex], false);
-  }
-};
-
-view.addEventListener("load", () => {
-  status.textContent =
-    "Viewer loaded. Some sites may block iframe embedding.";
-});
-
-navigate(homeURL);
-</script>
+    <script>
+        function go() {
+            let url = document.getElementById('url').value;
+            if(!url) return;
+            // Remove http if user typed it
+            url = url.replace(/^https?:\/\//, '');
+            // Redirects the current page to the proxy route on your server
+            window.location.href = `/proxy/${url}`;
+        }
+    </script>
 </body>
 </html>
