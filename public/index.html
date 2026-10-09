@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mini Browser</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: white;
+}
+header {
+  padding: 14px;
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+h2 { margin: 0 0 12px; font-size: 19px; }
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+button, input {
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 14px;
+}
+button {
+  color: white;
+  background: #374151;
+  cursor: pointer;
+}
+button:hover { background: #4b5563; }
+#address {
+  flex: 1;
+  min-width: 180px;
+  color: white;
+  background: #111827;
+}
+#status {
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 10px;
+}
+main { padding: 12px; }
+iframe {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 145px);
+  min-height: 350px;
+  border: 0;
+  border-radius: 8px;
+  background: white;
+}
+</style>
+</head>
+<body>
+<header>
+  <h2>🌐 Mini Browser</h2>
+  <div class="toolbar">
+    <button id="back" title="Back">←</button>
+    <button id="forward" title="Forward">→</button>
+    <button id="reload" title="Reload">⟳</button>
+    <button id="home" title="Home">⌂</button>
+    <input id="address" placeholder="Enter a URL or search..." />
+    <button id="go">Go</button>
+  </div>
+  <div id="status">Ready</div>
+</header>
+<main>
+  <iframe id="view" title="Webpage viewer"
+    referrerpolicy="no-referrer"></iframe>
+</main>
+
+<script>
+const address = document.getElementById("address");
+const view = document.getElementById("view");
+const status = document.getElementById("status");
+
+const homeURL = "https://example.com/";
+let historyList = [];
+let historyIndex = -1;
+
+function normalize(input) {
+  input = input.trim();
+  if (!input) return homeURL;
+
+  // Treat ordinary words as Google searches.
+  if (/\s/.test(input) || !input.includes(".")) {
+    return "https://www.google.com/search?q=" +
+      encodeURIComponent(input);
+  }
+
+  if (!/^https?:\/\//i.test(input)) {
+    input = "https://" + input;
+  }
+
+  try {
+    const url = new URL(input);
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new Error("Only HTTP and HTTPS URLs are supported.");
+    }
+    return url.href;
+  } catch {
+    alert("Please enter a valid website address.");
+    return null;
+  }
+}
+
+function navigate(input, save = true) {
+  const url = normalize(input);
+  if (!url) return;
+
+  address.value = url;
+  status.textContent = "Loading: " + url;
+  view.src = url;
+
+  if (save) {
+    historyList = historyList.slice(0, historyIndex + 1);
+    historyList.push(url);
+    historyIndex = historyList.length - 1;
+  }
+}
+
+document.getElementById("go").onclick =
+  () => navigate(address.value);
+
+address.addEventListener("keydown", event => {
+  if (event.key === "Enter") navigate(address.value);
+});
+
+document.getElementById("home").onclick =
+  () => navigate(homeURL);
+
+document.getElementById("reload").onclick = () => {
+  if (historyIndex >= 0) {
+    status.textContent = "Reloading...";
+    view.src = historyList[historyIndex];
+  }
+};
+
+document.getElementById("back").onclick = () => {
+  if (historyIndex > 0) {
+    historyIndex--;
+    navigate(historyList[historyIndex], false);
+  }
+};
+
+document.getElementById("forward").onclick = () => {
+  if (historyIndex < historyList.length - 1) {
+    historyIndex++;
+    navigate(historyList[historyIndex], false);
+  }
+};
+
+view.addEventListener("load", () => {
+  status.textContent =
+    "Viewer loaded. Some sites may block iframe embedding.";
+});
+
+navigate(homeURL);
+</script>
+</body>
+</html>
